@@ -1,0 +1,176 @@
+/* SmartPreview.css */
+
+/* --- ICONS --- */
+.sp-icon {
+    width: 18px;
+    height: 18px;
+    fill: #eee;
+}
+
+.sp-icon-sm {
+    width: 12px;
+    height: 12px;
+    fill: #888;
+}
+
+/* --- CONTAINER --- */
+.playback-container {
+    width: 100%;
+    height: 100%;
+    background-color: #161616;
+    border: 1px solid #222;
+    border-radius: 16px;
+    /* Removed padding to let header/footer touch edges */
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    /* Removed gap for seamless panel look */
+    gap: 0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    /* Ensure content doesn't spill out of rounded corners */
+}
+
+/* --- HEADER --- */
+.playback-header {
+    height: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+    /* Match MediaManager padding */
+    margin-bottom: 0;
+    border-bottom: 1px solid #222;
+    /* Add separator line */
+    background-color: #161616;
+    flex-shrink: 0;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #eee;
+    cursor: pointer;
+    user-select: none;
+}
+
+.header-right {
+    display: flex;
+    gap: 8px;
+}
+
+/* --- PRO TOOL BUTTONS --- */
+.tool-btn {
+    width: 32px;
+    height: 32px;
+    background-color: #262626;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.tool-btn:hover {
+    background-color: #333;
+    border-color: #444;
+}
+
+/* Button Active State */
+.tool-btn:active {
+    transform: scale(0.96);
+}
+
+.tool-btn.active {
+    background-color: #333;
+    border-color: #555;
+}
+
+
+/* --- VIDEO STAGE --- */
+/* --- VIDEO STAGE --- */
+.video-stage {
+    width: 100%;
+    flex: 1;
+    /* Grow to fill space */
+    min-height: 0;
+    /* Allow shrinking below content size if needed to fit container */
+    position: relative;
+    overflow: hidden;
+    background-color: #000;
+}
+
+.video-content {
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    position: relative;
+    /* Ensure children can be absolute relative to this if needed */
+}
+
+/*Canvas should overlay video content */
+.video-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+}
+
+/* --- FOOTER --- */
+.playback-footer {
+    height: 36px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+    /* Match MediaManager padding */
+    margin-top: 0;
+    border-top: 1px solid #222;
+    /* Add separator line */
+    background-color: #161616;
+    flex-shrink: 0;
+}
+
+.time-code {
+    font-family: "SF Mono", "Monaco", "Inconsolata", "Fira Mono", "Droid Sans Mono", "Source Code Pro", monospace;
+    font-size: 11px;
+    color: #777;
+    width: 60px;
+    letter-spacing: -0.5px;
+}
+
+.controls-center {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+}
+
+.control-icon {
+    fill: #eee;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: all 0.2s;
+}
+
+.control-icon:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.control-icon:active {
+    transform: scale(0.9);
+}
+
+.fullscreen-btn {
+    width: 60px;
+    display: flex;
+    justify-content: flex-end;
+}

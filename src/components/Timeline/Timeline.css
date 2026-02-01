@@ -1,0 +1,405 @@
+/* --- RESET & FONTS --- */
+/* (Reset is likely handled globally, keeping component specific styles) */
+
+/* --- ICONS (SVG) --- */
+.icon {
+    width: 14px;
+    height: 14px;
+    fill: #aaa;
+}
+
+.icon-sm {
+    width: 12px;
+    height: 12px;
+    fill: #888;
+}
+
+.icon-white {
+    fill: #fff;
+}
+
+/* --- MAIN TIMELINE CONTAINER --- */
+.timeline-container {
+    width: 100%;
+    /* max-width removed to fill available space */
+    background-color: #161616;
+    /* Dark grey container */
+    border: 1px solid #222;
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* --- 1. YELLOW SCENE BAR (Requested) --- */
+.scene-bar {
+    display: flex;
+    height: 8px;
+    width: 100%;
+    gap: 4px;
+    /* Split gap */
+}
+
+.scene-segment {
+    flex: 1;
+    background-color: #fca50f;
+    /* Yellow/Gold */
+    border-radius: 4px;
+    /* Rounded on all splits */
+    position: relative;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.scene-segment:hover {
+    opacity: 1;
+}
+
+/* Tooltip for Scene Name */
+.scene-segment:hover::after {
+    content: attr(data-name);
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    white-space: nowrap;
+    z-index: 10;
+}
+
+/* --- 2. TOOLBAR --- */
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 4px;
+}
+
+.toolbar-left,
+.toolbar-right {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.timeline-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #eee;
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+}
+
+.btn {
+    background-color: #262626;
+    border: none;
+    border-radius: 6px;
+    height: 32px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #eee;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn:hover {
+    background-color: #333;
+}
+
+.btn-icon-only {
+    padding: 0 10px;
+}
+
+/* --- 3. TIMELINE AREA --- */
+.timeline-grid {
+    display: flex;
+    height: 240px;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    background-color: #111;
+    overflow: auto;
+    /* Allow scrolling on the grid itself */
+    position: relative;
+    /* Custom Scrollbar for the grid */
+}
+
+/* --- LEFT CONTROLS --- */
+.track-headers {
+    width: 60px;
+    background-color: #111;
+    border-right: 1px solid #2a2a2a;
+    display: flex;
+    flex-direction: column;
+    padding-top: 30px;
+    /* Space for ruler */
+    flex-shrink: 0;
+
+    /* STICKY CONFIGURATION */
+    position: sticky;
+    left: 0;
+    z-index: 100;
+    /* High z-index to stay above content */
+}
+
+.track-control-row {
+    height: 70px;
+    /* Height of track */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid #1a1a1a;
+}
+
+.control-group {
+    background-color: #222;
+    border-radius: 6px;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.control-icon-row {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+}
+
+/* --- RIGHT CONTENT --- */
+.track-content {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    /* overflow-x: auto;  REMOVED: Parent handles scrolling */
+    user-select: none;
+}
+
+/* RULER */
+.ruler {
+    height: 30px;
+    border-bottom: 1px solid #2a2a2a;
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 5px;
+
+    /* STICKY CONFIGURATION */
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    /* Above tracks, below headers (100) */
+    background-color: #111;
+    /* Opaque background to hide tracks scrolling under */
+}
+
+.ruler-ticks {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    padding: 0 20px;
+    font-size: 9px;
+    font-family: monospace;
+    color: #555;
+}
+
+/* TRACK ROWS */
+.track-lane {
+    height: 70px;
+    border-bottom: 1px solid #1a1a1a;
+    position: relative;
+    display: flex;
+
+    /* Removed align-items: center to check vertical alignment manually if needed, 
+       but reference has it slightly different. 
+       Reference says: display: flex; align-items: center; padding: 0 10px; */
+    align-items: center;
+    padding: 0 10px;
+}
+
+/* --- CLIPS STYLING --- */
+
+/* 1. TEXT CLIPS */
+.clip-text {
+    height: 40px;
+    background-color: #4e5ae6;
+    /* Purple/Blue */
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    color: white;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    position: relative;
+    margin-right: 5px;
+}
+
+.clip-text.short {
+    width: 120px;
+}
+
+.clip-text.long {
+    width: 240px;
+}
+
+.text-icon {
+    margin-right: 8px;
+    font-family: serif;
+    font-weight: bold;
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+/* 2. VIDEO CLIPS */
+.clip-video {
+    height: 56px;
+    width: 140px;
+    background-color: #333;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Mock image content */
+.clip-video img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.8;
+}
+
+.clip-video.placeholder {
+    background: linear-gradient(135deg, #333 0%, #444 100%);
+}
+
+/* The Active/Yellow Border Selection */
+.clip-video.active {
+    border: 2px solid #fca50f;
+    /* Yellow selection */
+    z-index: 2;
+}
+
+/* Transitions (Yellow bars between clips) */
+.transition-handle {
+    width: 14px;
+    height: 24px;
+    background-color: #fca50f;
+    border-radius: 2px;
+    margin: 0 -6px;
+    /* Overlap slightly */
+    z-index: 10;
+    border: 2px solid #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.transition-handle::after {
+    content: '';
+    height: 10px;
+    width: 1px;
+    background-color: #9c6809;
+}
+
+/* 3. AUDIO CLIPS */
+.clip-audio {
+    height: 40px;
+    background-color: #366b5d;
+    /* Teal Green */
+    border-radius: 6px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    position: relative;
+    overflow: hidden;
+    color: #fff;
+    font-size: 11px;
+}
+
+.audio-label {
+    position: absolute;
+    left: 10px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(54, 107, 93, 0.8);
+    padding-right: 10px;
+    border-radius: 4px;
+}
+
+/* CSS Waveform Pattern */
+.waveform {
+    position: absolute;
+    left: 0;
+    top: 10px;
+    bottom: 10px;
+    width: 100%;
+    opacity: 0.4;
+    /* Generating a fake waveform look using repeating gradients */
+    background-image: repeating-linear-gradient(90deg,
+            transparent 0px,
+            transparent 2px,
+            #a8e6cf 2px,
+            #a8e6cf 3px);
+    mask-image: linear-gradient(to bottom, transparent 0%, black 50%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 50%, transparent 100%);
+}
+
+/* PLAYHEAD */
+.playhead {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    /* JS will position this */
+    width: 1px;
+    background-color: white;
+    z-index: 50;
+    pointer-events: none;
+}
+
+/* Top circle */
+.playhead::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    /* On ruler */
+    left: -4px;
+    width: 9px;
+    height: 9px;
+    background-color: white;
+    border-radius: 50%;
+}
+
+/* Bottom circle */
+.playhead::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: -4px;
+    width: 9px;
+    height: 9px;
+    background-color: white;
+    border-radius: 50%;
+}

@@ -1,0 +1,330 @@
+/* --- MODAL OVERLAY --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* --- MODAL CONTAINER --- */
+.export-modal {
+    width: 860px;
+    /* Wider to accommodate 16:9 preview */
+    height: 520px;
+    background-color: #161616;
+    /* Unified Surface Color */
+    border: 1px solid #222;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+    animation: scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* --- HEADER --- */
+.modal-header {
+    height: 56px;
+    border-bottom: 1px solid #222;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    flex-shrink: 0;
+}
+
+.modal-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.01em;
+}
+
+.close-btn {
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.close-btn:hover {
+    background-color: #222;
+}
+
+.close-btn svg {
+    fill: #888;
+    width: 14px;
+    height: 14px;
+    transition: fill 0.2s;
+}
+
+.close-btn:hover svg {
+    fill: #fff;
+}
+
+/* --- BODY --- */
+.modal-body {
+    flex-grow: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+/* LEFT: PREVIEW (16:9) */
+.preview-panel {
+    width: 55%;
+    /* Larger dedicated space */
+    background-color: #0d0d0d;
+    /* Darker inset */
+    border-right: 1px solid #222;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+}
+
+.video-container {
+    width: 100%;
+    aspect-ratio: 16/9;
+    /* Requested Landscape */
+    background-image: url('https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=1000&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+    border-radius: 8px;
+    border: 1px solid #222;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    group: 'preview';
+}
+
+/* Big Play Button (Matches Playback Component) */
+.center-play-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 64px;
+    height: 64px;
+    background-color: rgba(20, 20, 20, 0.4);
+    backdrop-filter: blur(8px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.2s ease;
+}
+
+.center-play-btn:hover {
+    transform: translate(-50%, -50%) scale(1.05);
+    background-color: rgba(40, 40, 40, 0.6);
+}
+
+.center-play-btn svg {
+    width: 24px;
+    height: 24px;
+    fill: white;
+    margin-left: 4px;
+}
+
+.preview-meta {
+    text-align: center;
+}
+
+.preview-meta h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #eee;
+    margin-bottom: 4px;
+}
+
+.preview-meta p {
+    font-size: 11px;
+    color: #666;
+    font-family: monospace;
+}
+
+/* RIGHT: SETTINGS */
+.settings-panel {
+    width: 45%;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    overflow-y: auto;
+    background-color: #161616;
+}
+
+/* Form Styling */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-label {
+    font-size: 11px;
+    color: #888;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-input,
+.form-select {
+    height: 40px;
+    background-color: #0d0d0d;
+    /* Matches Input styles */
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 0 12px;
+    color: #eee;
+    font-size: 13px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s;
+}
+
+.form-input:focus,
+.form-select:focus {
+    border-color: #444;
+}
+
+/* Custom Select Styling */
+.form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px;
+    cursor: pointer;
+}
+
+/* Format Pills */
+.format-group {
+    display: flex;
+    background: #0d0d0d;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 2px;
+}
+
+.format-option {
+    flex: 1;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: #666;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.format-option:hover {
+    color: #ccc;
+}
+
+.format-option.active {
+    background-color: #222;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* --- FOOTER --- */
+.modal-footer {
+    height: 68px;
+    border-top: 1px solid #222;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    background-color: #161616;
+    flex-shrink: 0;
+}
+
+.stats-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.stats-main {
+    font-size: 12px;
+    color: #ccc;
+    font-weight: 500;
+}
+
+.stats-sub {
+    font-size: 11px;
+    color: #555;
+}
+
+.action-group {
+    display: flex;
+    gap: 12px;
+}
+
+.btn {
+    height: 38px;
+    padding: 0 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+
+.btn-cancel {
+    background-color: transparent;
+    border-color: #333;
+    color: #ccc;
+}
+
+.btn-cancel:hover {
+    background-color: #222;
+    border-color: #444;
+    color: #fff;
+}
+
+.btn-export {
+    background: linear-gradient(135deg, #4e5ae6 0%, #3b46c0 100%);
+    color: white;
+    box-shadow: 0 2px 12px rgba(78, 90, 230, 0.25);
+    border: none;
+}
+
+.btn-export:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}

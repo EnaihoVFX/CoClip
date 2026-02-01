@@ -1,0 +1,307 @@
+/* --- SIDEBAR CONTAINER --- */
+.sidebar-container {
+    width: var(--sidebar-width);
+    /* height: 100%; handled by parent flex/layout usually, but user CSS asked for specific height. 
+       In our layout, we want it to fill the parent. 
+       We will apply these styles to the aside element. */
+    background-color: #161616;
+    border: 1px solid #222;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    /* MATCHING OTHERS: Remove padding here */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    /* Ensure it doesn't overflow parent if parent is strict, but we added overflow-y to sidebars before. */
+    overflow: hidden;
+}
+
+/* --- HEADER --- */
+.sidebar-header {
+    height: 40px;
+    /* MATCHING OTHERS */
+    margin-bottom: 0;
+    /* MATCHING OTHERS */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    padding: 0 16px;
+    /* MATCHING OTHERS */
+    border-bottom: 1px solid #222;
+    /* MATCHING OTHERS */
+}
+
+.header-title {
+    font-size: 14px;
+    font-weight: 600;
+    /* MATCHING OTHERS (MediaManager is 600) */
+    color: #eee;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
+    margin-right: 8px;
+}
+
+.header-icon {
+    width: 28px;
+    height: 28px;
+    background-color: transparent;
+    /* MATCHING OTHERS (usually transparent buttons or just icon) */
+    /* If we want to keep the button look from 'No Emojis' design, we can, but 'match header' usually implies clean look. 
+       The user said 'match the media and player headers', which don't have this box around the icon usually unless it's a tool button.
+       Let's keep the box if it's a specific 'feature' of this sidebar design, but maybe subtle. 
+       Actually, MediaManager has 'header-right' with icons. 
+       Let's keep the user's specific 'No Emojis' icon style but inside the standard header frame. */
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.header-icon svg {
+    width: 14px;
+    height: 14px;
+    fill: #eee;
+}
+
+/* --- BUBBLE FEED --- */
+.agent-feed {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+    padding: 16px;
+    /* MOVED PADDING HERE */
+}
+
+/* --- STATUS BUBBLE CARD --- */
+.agent-bubble {
+    background-color: #1f1f1f;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+    flex-shrink: 0;
+}
+
+.agent-bubble:hover {
+    transform: translateY(-2px);
+    border-color: #333;
+}
+
+/* --- AVATARS --- */
+.avatar-container {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    position: relative;
+}
+
+.avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* SVG sizing inside avatar */
+.avatar svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+/* Status Dot on Avatar */
+.status-dot {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 10px;
+    height: 10px;
+    background-color: #222;
+    /* Border mask */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dot-inner {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+/* --- BUBBLE CONTENT --- */
+.bubble-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+}
+
+.agent-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #eee;
+    display: flex;
+    justify-content: space-between;
+}
+
+.agent-activity {
+    font-size: 12px;
+    color: #888;
+    line-height: 1.3;
+}
+
+/* --- STATES & COLORS --- */
+
+/* 1. DIRECTOR (Purple) */
+.bubble-director .avatar {
+    background: linear-gradient(135deg, #4e5ae6 0%, #3b3b6d 100%);
+    color: white;
+}
+
+.bubble-director .dot-inner {
+    background-color: #a78bfa;
+    box-shadow: 0 0 6px #a78bfa;
+    animation: pulse 2s infinite;
+}
+
+/* 2. PRODUCER (Orange) */
+.bubble-producer .avatar {
+    background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+    color: white;
+}
+
+.bubble-producer .dot-inner {
+    background-color: #fbbf24;
+}
+
+/* Progress Bar */
+.progress-track {
+    height: 3px;
+    width: 100%;
+    background-color: #333;
+    border-radius: 2px;
+    margin-top: 6px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 60%;
+    background-color: #fbbf24;
+    border-radius: 2px;
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);
+    background-size: 1rem 1rem;
+    animation: progress-stripe 1s linear infinite;
+}
+
+/* 3. EDITOR (Grey/Blue) */
+.bubble-editor {
+    opacity: 0.7;
+}
+
+.bubble-editor .avatar {
+    background-color: #2a2a2a;
+    color: #999;
+}
+
+.bubble-editor .dot-inner {
+    background-color: #555;
+}
+
+/* 4. SOUND ENGINEER (Same as Editor for now visually, or explicit new one? User code repeated bubble-editor. I will create bubble-sound if I want, but user used bubble-editor for sound engineer too in sample HTML) */
+/* actually user just repeated bubble-editor class in the html example for sound engineer. */
+
+
+/* --- ANIMATIONS --- */
+@keyframes pulse {
+    0% {
+        opacity: 0.5;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes progress-stripe {
+    from {
+        background-position: 1rem 0;
+    }
+
+    to {
+        background-position: 0 0;
+    }
+}
+
+
+/* --- FOOTER --- */
+.sidebar-footer {
+    margin-top: auto;
+    border-top: 1px solid #222;
+    padding: 0 16px;
+    /* MATCHING PADDING (was top 16px only before) */
+    height: 48px;
+    /* Give it a fixed height or min-height to match feel? MediaManager footer is 36px. Sidebar footer has avatar. */
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.user-widget {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.user-widget:hover {
+    opacity: 1;
+}
+
+.user-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #444;
+}
+
+.user-avatar svg {
+    width: 14px;
+    height: 14px;
+    fill: #aaa;
+}
+
+.user-text {
+    font-size: 12px;
+    color: #888;
+    font-weight: 500;
+}
