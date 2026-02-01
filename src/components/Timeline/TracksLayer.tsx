@@ -1,94 +1,116 @@
 import React from 'react';
 import type { Clip } from '../../types';
 import ClipThumbnails from './ClipThumbnails';
+import AudioWaveform from './AudioWaveform';
 
 const PIXELS_PER_SECOND = 20;
 
-// Generic Clip Item Component
-const ClipItemRenderer: React.FC<{
-    clip: Clip,
-    isSelected: boolean,
-    onSelect: (e: React.MouseEvent) => void
-}> = ({ clip, isSelected, onSelect }) => {
+// Reusable wrapper that adds selection and resize handles
+const ResizableClip: React.FC<{
+    clip: Clip;
+    isSelected: boolean;
+    onSelect: (e: React.MouseEvent) => void;
+    onResizeStart: (e: React.MouseEvent, clipId: string, edge: 'left' | 'right') => void;
+    children: React.ReactNode;
+    className?: string; // extra classes
+}> = ({ clip, isSelected, onSelect, onResizeStart, children, className = '' }) => {
     const width = clip.duration * PIXELS_PER_SECOND;
     const left = clip.start * PIXELS_PER_SECOND;
 
-    let bgColor = '#3b82f6'; // Default blue (video)
-    if (clip.type === 'audio') bgColor = '#10b981'; // Green
-    if (clip.type === 'text') bgColor = '#f59e0b'; // Amber
-    if (clip.type === 'image') bgColor = '#8b5cf6'; // Purple
-
-    // Darker colors for video to let thumbnails pop
-    if (clip.type === 'video') bgColor = '#1f2937';
-
     return (
         <div
-            className="clip-item"
-            onClick={(e) => {
-                e.stopPropagation();
-                onSelect(e);
-            }}
+            className={className}
+            onClick={(e) => { e.stopPropagation(); onSelect(e); }}
             style={{
                 position: 'absolute',
                 left: `${left}px`,
                 width: `${width}px`,
-                height: '100%',
-                backgroundColor: bgColor,
-                borderRadius: '4px',
-                border: isSelected ? '2px solid #fff' : '1px solid rgba(255,255,255,0.2)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                padding: '0', // Removed padding to let thumbnails fill
-                overflow: 'hidden',
-                cursor: 'pointer',
-                color: 'white',
-                fontSize: '0.8rem',
-                zIndex: 10,
-                boxShadow: isSelected ? '0 0 0 1px rgba(0,0,0,0.5)' : 'none'
+                border: isSelected ? '2px solid #fff' : 'none', // Override base styles if needed or handle logic inside
+                zIndex: isSelected ? 50 : 'auto', // Ensure selected clip is above others (and transition handles)
             }}
             title={`${clip.name} (${clip.duration.toFixed(1)}s)`}
         >
-            {/* THUMBNAILS LAYER (Only for video) */}
-            {clip.type === 'video' && (
-                <ClipThumbnails
-                    src={clip.content}
-                    width={width}
-                    height={56} // Fixed height of video clip
-                    clipDuration={clip.duration}
-                    clipStartInAsset={clip.startInAsset}
-                />
-            )}
+            {children}
 
-            {/* NAME OVERLAY */}
-            <div style={{
-                position: 'absolute',
-                bottom: '2px',
-                left: '4px',
-                zIndex: 2,
-                textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                fontWeight: 600,
-                maxWidth: '100%',
-                backgroundColor: 'rgba(0,0,0,0.3)',
-                padding: '0 4px',
-                borderRadius: '2px'
-            }}>
-                {clip.name || clip.type}
-            </div>
+            {/* RESIZE HANDLES - Only visible/active if selected? Or always? Usually always for easier access, but maybe only if selected to avoid clutter. Let's make it always interaction-ready but visually subtle (css opacity 0) */}
+            {isSelected && (
+                <>
+                    <div
+                        className="resize-handle left"
+                        onMouseDown={(e) => {
+                            e.stopPropagation();
+                            onResizeStart(e, clip.id, 'left');
+                        }}
+                    />
+                    <div
+                        className="resize-handle right"
+                        onMouseDown={(e) => {
+                            e.stopPropagation();
+                            onResizeStart(e, clip.id, 'right');
+                        }}
+                    />
+                </>
+            )}
         </div>
     );
 };
 
+// Text Clip Content
+const TextClipRenderer: React.FC<{ clip: Clip }> = ({ clip }) => {
+    const width = clip.duration * PIXELS_PER_SECOND;
+    return (
+        <div className={`clip-text ${width < 150 ? 'short' : 'long'}`} style={{ width: '100%', left: 0, position: 'relative' }}>
+            <span className="text-icon">T</span>
+            {clip.name || 'Text...'}
+        </div>
+    );
+};
+
+// Video Clip Content
+const VideoClipRenderer: React.FC<{ clip: Clip, isSelected: boolean }> = ({ clip, isSelected }) => {
+    const width = clip.duration * PIXELS_PER_SECOND;
+    return (
+        <div className={`clip-video placeholder ${isSelected ? 'active' : ''}`} style={{ width: '100%', left: 0, position: 'relative' }}>
+            {clip.content && (
+                <ClipThumbnails
+                    src={clip.content}
+                    width={width}
+                    height={56}
+                    clipDuration={clip.duration}
+                    clipStartInAsset={clip.startInAsset}
+                />
+            )}
+        </div>
+    );
+};
+
+// Audio Clip Content
+const AudioClipRenderer: React.FC<{ clip: Clip }> = ({ clip }) => {
+    const width = clip.duration * PIXELS_PER_SECOND;
+    return (
+        <div className="clip-audio" style={{ width: '100%', left: 0, position: 'relative', border: 'none' }}>
+            <span className="audio-label">
+                <svg className="icon-white" width="10" height="10" viewBox="0 0 24 24">
+                    <path fill="#fff" d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z" />
+                </svg>
+                {clip.name || 'Audio'}
+            </span>
+            <AudioWaveform width={width} height={40} color="rgba(168, 230, 207, 0.5)" />
+        </div>
+    );
+};
+
+// Generic fallback state style helper
+// ... actually easier to just style generic div
+
 interface TracksLayerProps {
-    tracks: any[]; // Using any[] to avoid importing VideoProject['tracks'] complexity, but preferably shared type
+    tracks: any[];
     ghost: { trackId: string, start: number, duration: number, valid: boolean } | null;
     selectedClipId: string | null;
     selectClip: (id: string | null) => void;
     onDragOver: (e: React.DragEvent, trackId: string, trackType: string, clips: Clip[]) => void;
     onDrop: (e: React.DragEvent, trackId: string, trackType: string, clips: Clip[]) => void;
+    onResizeStart: (e: React.MouseEvent, clipId: string, edge: 'left' | 'right') => void;
 }
 
 const TracksLayer: React.FC<TracksLayerProps> = React.memo(({
@@ -97,15 +119,15 @@ const TracksLayer: React.FC<TracksLayerProps> = React.memo(({
     selectedClipId,
     selectClip,
     onDragOver,
-    onDrop
+    onDrop,
+    onResizeStart
 }) => {
-    // Calculate total width based on clips? The parent container handles scrolling/width.
-    // TracksLayer just fills 100% height and renders lanes.
-
     return (
-        <div className="tracks-layer" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
+        <div className="tracks-layer" style={{ position: 'relative', width: '100%', minHeight: '100%' }}>
             {tracks.map(track => {
                 const isGhostInTrack = ghost && ghost.trackId === track.id;
+                // Sort clips by start time for transition rendering
+                const sortedClips = [...track.clips].sort((a: Clip, b: Clip) => a.start - b.start);
 
                 return (
                     <div
@@ -119,14 +141,58 @@ const TracksLayer: React.FC<TracksLayerProps> = React.memo(({
                             {track.name}
                         </div>
 
-                        {track.clips.map((clip: Clip) => (
-                            <ClipItemRenderer
-                                key={clip.id}
-                                clip={clip}
-                                isSelected={selectedClipId === clip.id}
-                                onSelect={() => selectClip(clip.id)}
-                            />
-                        ))}
+                        {/* Render clips based on type */}
+                        {sortedClips.map((clip: Clip, index: number) => {
+                            const isSelected = selectedClipId === clip.id;
+                            const onSelect = () => selectClip(clip.id);
+
+                            // Video track: render transition handles between clips
+                            let transitionElement = null;
+                            if (track.type === 'video' && index > 0) {
+                                const prevClip = sortedClips[index - 1];
+                                const prevEndSeconds = prevClip.start + prevClip.duration;
+                                const currentStartSeconds = clip.start;
+
+                                // Only show handle if clips are effectively adjacent (gap < 0.2s)
+                                if (currentStartSeconds - prevEndSeconds < 0.2) {
+                                    const prevEndPx = prevEndSeconds * PIXELS_PER_SECOND;
+                                    const currentStartPx = currentStartSeconds * PIXELS_PER_SECOND;
+                                    const transitionLeft = (prevEndPx + currentStartPx) / 2 - 7;
+
+                                    transitionElement = (
+                                        <div
+                                            key={`trans-${clip.id}`}
+                                            className="transition-handle"
+                                            style={{ position: 'absolute', left: `${transitionLeft}px`, zIndex: 15 }}
+                                        />
+                                    );
+                                }
+                            }
+
+                            return (
+                                <React.Fragment key={clip.id}>
+                                    {transitionElement}
+                                    <ResizableClip
+                                        clip={clip}
+                                        isSelected={isSelected}
+                                        onSelect={onSelect}
+                                        onResizeStart={onResizeStart}
+                                        // For video we handle active class inside renderer, so standard border is fine or specific
+                                        className={clip.type !== 'video' && clip.type !== 'text' ? 'clip-item' : ''}
+                                    >
+                                        {clip.type === 'text' && <TextClipRenderer clip={clip} />}
+                                        {clip.type === 'video' && <VideoClipRenderer clip={clip} isSelected={isSelected} />}
+                                        {clip.type === 'audio' && <AudioClipRenderer clip={clip} />}
+                                        {/* Generic fallback styling */}
+                                        {clip.type !== 'text' && clip.type !== 'video' && clip.type !== 'audio' && (
+                                            <div style={{ padding: '0 8px', color: 'white', backgroundColor: '#8b5cf6', height: '100%', display: 'flex', alignItems: 'center', borderRadius: '4px' }}>
+                                                {clip.name || clip.type}
+                                            </div>
+                                        )}
+                                    </ResizableClip>
+                                </React.Fragment>
+                            );
+                        })}
 
                         {/* GHOST CLIP */}
                         {isGhostInTrack && (

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { getCachedThumbnail, setCachedThumbnail } from './ThumbnailCache';
 
 interface ClipThumbnailsProps {
     src: string;
@@ -8,7 +9,9 @@ interface ClipThumbnailsProps {
     clipStartInAsset: number; // Time in seconds where the clip starts in the source video
 }
 
-const THUMBNAIL_WIDTH = 60; // Desired width of each thumbnail
+const THUMBNAIL_WIDTH = 60;
+const PIXELS_PER_SECOND = 20;
+const TIME_STEP = THUMBNAIL_WIDTH / PIXELS_PER_SECOND; // 3 seconds per thumbnail
 
 const ClipThumbnails: React.FC<ClipThumbnailsProps> = React.memo(({
     src,
@@ -17,11 +20,18 @@ const ClipThumbnails: React.FC<ClipThumbnailsProps> = React.memo(({
     clipDuration,
     clipStartInAsset
 }) => {
-    const [thumbnails, setThumbnails] = useState<string[]>([]);
+    const [thumbnails, setThumbnails] = useState<{ time: number, url: string }[]>([]);
     const [isGenerated, setIsGenerated] = useState(false);
 
-    // Calculate how many thumbnails we need to fill the width
-    const count = Math.ceil(width / THUMBNAIL_WIDTH);
+    // Quantization Logic
+    // We want thumbnails at fixed intervals: 0, 3, 6, 9...
+    // Find the range covering [clipStartInAsset, clipStartInAsset + duration]
+    const startQuantized = Math.floor(clipStartInAsset / TIME_STEP) * TIME_STEP;
+    const endQuantized = Math.ceil((clipStartInAsset + clipDuration) / TIME_STEP) * TIME_STEP;
+
+    // Calculate visual offset
+    // If clip starts at 4s, and first thumb is 3s, offset is (3-4) * PPS = -20px.
+    const leftOffset = (startQuantized - clipStartInAsset) * PIXELS_PER_SECOND;
 
     // Use a ref to ensure we don't try to set state on unmounted component
     const isMounted = useRef(true);
@@ -30,83 +40,103 @@ const ClipThumbnails: React.FC<ClipThumbnailsProps> = React.memo(({
 
     useEffect(() => {
         isMounted.current = true;
-        setThumbnails([]);
-        setIsGenerated(false);
+        // Do NOT clear thumbnails immediately to prevent flashing.
+        // setThumbnails([]); 
 
         const generateThumbnails = async () => {
             if (!src) return;
 
+            // 1. Calculate required timestamps
+            const requiredTimestamps: number[] = [];
+            for (let t = startQuantized; t < endQuantized; t += TIME_STEP) {
+                requiredTimestamps.push(t);
+            }
+
+            // 2. Check Cache & Reuse
+            // We map timestamps to {time: t, url: string}
+            let newThumbnails: { time: number, url: string }[] = [];
+            let missingIndices: number[] = [];
+
+            requiredTimestamps.forEach((time, index) => {
+                const cached = getCachedThumbnail(src, time);
+                if (cached) {
+                    newThumbnails.push({ time, url: cached });
+                } else {
+                    newThumbnails.push({ time, url: '' }); // Placeholder
+                    missingIndices.push(index);
+                }
+            });
+
+            // Immediate update with what we have
+            setThumbnails([...newThumbnails]);
+
+            if (missingIndices.length === 0) {
+                setIsGenerated(true);
+                return;
+            }
+
+            // 3. Generate Missing
             const video = document.createElement('video');
             video.src = src;
             video.crossOrigin = "anonymous";
             video.muted = true;
             video.preload = "metadata";
 
-            // Wait for metadata to ensure we can seek
             await new Promise((resolve, reject) => {
                 video.onloadedmetadata = () => resolve(true);
                 video.onerror = (e) => reject(e);
             });
 
             const canvas = document.createElement('canvas');
-            // We'll draw at relatively low res for performance, assume aspect ratio of video
+            // Fixed sizing for cache consistency
+            // Aspect ratio might vary per video, but let's assume standard or scale?
+            // Actually better to respect aspect.
             const aspect = video.videoWidth / video.videoHeight;
             const drawHeight = height;
             const drawWidth = drawHeight * aspect;
+            // NOTE: If drawWidth != THUMBNAIL_WIDTH (60), we might have gaps or overlaps.
+            // But we display with flex:1 or fixed width?
+            // "Filmstrip" usually implies fixed visual width (60px) represents fixed time (3s).
+            // So we should enforce canvas width = 60px?
+            // If aspect ratio implies 60px width = X height, we might crop?
+            // For now, let's keep drawing full aspect, but display logic handles sizing.
 
             canvas.width = drawWidth;
             canvas.height = drawHeight;
-
             const ctx = canvas.getContext('2d');
             if (!ctx) return;
 
-            const generatedImages: string[] = [];
+            for (const index of missingIndices) {
+                if (!isMounted.current) break;
 
-            // Calculate time interval
-            // The clip represents [clipStartInAsset, clipStartInAsset + clipDuration]
-            // We want 'count' thumbnails evenly spaced or just filling the space.
-            // Actually, for a filmstrip, we want them to represent the video content over time spatially.
-            // If width is 300px and we want 60px thumbs, we need 5 thumbs.
-            // Each thumb represents (clipDuration / count) seconds? No, usually filmstrips are just sampling at regular visual intervals.
-
-            // Let's implement evenly spaced samples across the clip duration.
-            const timeStep = clipDuration / count;
-
-            for (let i = 0; i < count; i++) {
-                if (!isMounted.current) return; // Stop if unmounted
-
-                // Time for this specific thumbnail
-                // We offset by half interval to get center of the segment, or just start. Let's do start.
-                const time = clipStartInAsset + (i * timeStep);
+                const time = requiredTimestamps[index];
 
                 // Seek
-                video.currentTime = time;
+                // Ensure we don't seek past duration? Browsers handle it usually.
+                video.currentTime = Math.min(time, video.duration || 99999);
 
                 await new Promise((resolve) => {
                     video.onseeked = () => resolve(true);
-                    // Timeout just in case
-                    setTimeout(() => resolve(true), 1000);
+                    setTimeout(() => resolve(true), 500);
                 });
 
-                if (!isMounted.current) return;
+                if (!isMounted.current) break;
 
                 // Draw
                 ctx.drawImage(video, 0, 0, drawWidth, drawHeight);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
 
-                // To Data URL
-                // quality 0.7 for compression
-                generatedImages.push(canvas.toDataURL('image/jpeg', 0.6));
+                // Update Cache
+                setCachedThumbnail(src, time, dataUrl);
 
-                // Update state progressively (optional, or just all at once)
-                // Doing it progressively looks cooler but triggers more renders.
-                // Let's do batches or just push updates every few.
-                // For smoother feel, let's update every frame or so? 
-                // Updating React state inside a loop might be too much. 
-                // Let's update in chunks of 5? Or just all at end if small count.
+                // Update State Locally
+                newThumbnails[index] = { time, url: dataUrl };
+
+                // Batched update could go here if list is long
             }
 
             if (isMounted.current) {
-                setThumbnails(generatedImages);
+                setThumbnails([...newThumbnails]);
                 setIsGenerated(true);
             }
 
@@ -122,7 +152,8 @@ const ClipThumbnails: React.FC<ClipThumbnailsProps> = React.memo(({
         return () => {
             isMounted.current = false;
         };
-    }, [src, width, height, clipDuration, clipStartInAsset, count]);
+    }, [src, width, height, clipDuration, clipStartInAsset, startQuantized, endQuantized]);
+    // width/duration changed dependencies to quantized numbers
 
     return (
         <div
@@ -130,32 +161,41 @@ const ClipThumbnails: React.FC<ClipThumbnailsProps> = React.memo(({
             style={{
                 position: 'absolute',
                 top: 0,
-                left: 0,
-                width: '100%',
+                left: leftOffset, // Shift the strip to align time
+                width: `${thumbnails.length * THUMBNAIL_WIDTH}px`, // Explicit width based on grid
                 height: '100%',
                 display: 'flex',
                 overflow: 'hidden',
-                pointerEvents: 'none', // Allow clicks to pass through to clip selection
-                opacity: 0.6, // Blend with background
-                filter: 'grayscale(0.3) contrast(1.1)', // Aesthetic touch
+                pointerEvents: 'none',
+                opacity: 0.6,
+                filter: 'grayscale(0.3) contrast(1.1)',
             }}
         >
-            {thumbnails.map((thumb, idx) => (
-                <img
-                    key={idx}
-                    src={thumb}
-                    alt=""
+            {thumbnails.map((item, idx) => (
+                <div
+                    key={item.time}
                     style={{
+                        width: THUMBNAIL_WIDTH,
+                        minWidth: THUMBNAIL_WIDTH,
                         height: '100%',
-                        // Force width to fill available space evenly or fixed?
-                        // If we calculated count based on THUMBNAIL_WIDTH, we can just let flex handle it or force size.
-                        // Flex: 1 ensures they fill the container exactly.
-                        flex: 1,
-                        objectFit: 'cover',
                         borderRight: '1px solid rgba(255,255,255,0.1)',
-                        display: 'block'
+                        boxSizing: 'border-box',
+                        overflow: 'hidden',
+                        position: 'relative'
                     }}
-                />
+                >
+                    {item.url && (
+                        <img
+                            src={item.url}
+                            alt=""
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover'
+                            }}
+                        />
+                    )}
+                </div>
             ))}
         </div>
     );

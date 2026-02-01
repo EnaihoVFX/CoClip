@@ -1,6 +1,9 @@
 import React from 'react';
+import { useProject } from '../../ProjectStore';
 
 const Toolbar: React.FC = () => {
+    const { splitSelectedClip, deleteSelectedClip, selectedClipId } = useProject();
+
     return (
         <div className="toolbar">
             <div className="toolbar-left">
@@ -24,12 +27,26 @@ const Toolbar: React.FC = () => {
             </div>
 
             <div className="toolbar-right">
-                <button className="btn btn-icon-only">
+                {/* SPLIT BUTTON */}
+                <button
+                    className="btn btn-icon-only"
+                    onClick={splitSelectedClip}
+                    disabled={!selectedClipId}
+                    title="Split Clip (at playhead)"
+                    style={{ opacity: selectedClipId ? 1 : 0.5 }}
+                >
                     <svg className="icon" viewBox="0 0 24 24"><path d="M17 4v7l2 3v2h-6v5l-1 1-1-1v-5H5v-2l2-3V4c0-1.1.9-2 2-2h6c1.1 0 2 .9 2 2zm-7 0v7h4V4h-4z" /></svg>
                 </button>
-                <button className="btn">
+
+                {/* DELETE BUTTON */}
+                <button
+                    className="btn btn-icon-only"
+                    onClick={deleteSelectedClip}
+                    disabled={!selectedClipId}
+                    title="Delete Clip"
+                    style={{ opacity: selectedClipId ? 1 : 0.5 }}
+                >
                     <svg className="icon" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" /></svg>
-                    Delete
                 </button>
             </div>
         </div>

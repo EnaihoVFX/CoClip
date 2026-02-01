@@ -112,6 +112,9 @@
     background-color: #000;
     position: relative;
     /* Ensure children can be absolute relative to this if needed */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 /*Canvas should overlay video content */

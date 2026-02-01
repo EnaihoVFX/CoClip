@@ -61,24 +61,32 @@ const Playhead: React.FC = () => {
                 top: 0,
                 bottom: 0,
                 width: '1px',
-                backgroundColor: '#e11d48',
+                backgroundColor: 'white',
                 zIndex: 50,
                 pointerEvents: 'none',
                 // Initial render position
                 left: `${currentTime * PIXELS_PER_SECOND}px`
             }}
         >
-            {/* Playhead logic top handle */}
+            {/* Top circle */}
             <div style={{
                 position: 'absolute',
-                top: 0,
-                left: '-5px',
-                width: '11px',
-                height: '11px',
-                backgroundColor: '#e11d48',
-                transform: 'rotate(45deg)',
-                marginTop: '-5px',
-                borderRadius: '0 0 2px 0'
+                top: '-5px',
+                left: '-4px',
+                width: '9px',
+                height: '9px',
+                backgroundColor: 'white',
+                borderRadius: '50%'
+            }} />
+            {/* Bottom circle */}
+            <div style={{
+                position: 'absolute',
+                bottom: '-5px',
+                left: '-4px',
+                width: '9px',
+                height: '9px',
+                backgroundColor: 'white',
+                borderRadius: '50%'
             }} />
         </div>
     );

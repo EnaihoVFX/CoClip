@@ -52,7 +52,7 @@ export const MainComposition: React.FC = () => {
 
     return (
         <AbsoluteFill style={{ backgroundColor: 'transparent' }}>
-            {project.tracks.map((track) => {
+            {[...project.tracks].reverse().map((track) => {
                 // Determine z-index or order.
                 // In generic video editors, top tracks are usually "on top".
                 // We map them in order of the array.

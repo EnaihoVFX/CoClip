@@ -13,7 +13,12 @@ const INITIAL_PROJECT: VideoProject = {
     height: 1080,
     fps: 30,
     duration: 60, // Default duration
-    scenes: [],
+    scenes: [
+        { id: 'scene-1', name: 'Intro' },
+        { id: 'scene-2', name: 'Scene 1' },
+        { id: 'scene-3', name: 'Transition' },
+        { id: 'scene-4', name: 'Scene 2' },
+    ],
     tracks: [
         { id: generateId(), type: 'text', name: 'Text Layer', clips: [] },
         { id: generateId(), type: 'video', name: 'Video Track 1', clips: [] },
@@ -33,6 +38,7 @@ interface ProjectContextType {
     updateClipResult: (clipId: string, updates: Partial<Clip>) => void;
     splitClip: (clipId: string, splitTime: number) => void;
     removeClip: (clipId: string) => void;
+    addTrack: (type: 'video' | 'audio' | 'text', insertBeforeTrackId?: string, name?: string) => string;
     // Playback
     currentTime: number;
     setCurrentTime: (time: number | ((prev: number) => number)) => void;
@@ -42,8 +48,12 @@ interface ProjectContextType {
     selectedClipId: string | null;
     selectClip: (id: string | null) => void;
     // Snapping
+    // Snapping
     isSnapping: boolean;
     toggleSnapping: () => void;
+    // Tooling
+    splitSelectedClip: () => void;
+    deleteSelectedClip: () => void;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -171,6 +181,37 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         });
     }, []);
 
+    // 5. Add Track
+    const addTrack = React.useCallback((type: 'video' | 'audio' | 'text', insertBeforeTrackId?: string, name?: string) => {
+        const newTrackId = generateId();
+        setProject(prev => {
+            const newTrack: { id: string; type: 'video' | 'audio' | 'text'; name: string; clips: Clip[] } = {
+                id: newTrackId,
+                type,
+                name: name || `${type.charAt(0).toUpperCase() + type.slice(1)} Track ${prev.tracks.filter(t => t.type === type).length + 1}`,
+                clips: []
+            };
+
+            let newTracks = [...prev.tracks];
+            if (insertBeforeTrackId) {
+                const index = newTracks.findIndex(t => t.id === insertBeforeTrackId);
+                if (index !== -1) {
+                    newTracks.splice(index, 0, newTrack);
+                } else {
+                    newTracks.push(newTrack);
+                }
+            } else {
+                newTracks.push(newTrack);
+            }
+
+            return {
+                ...prev,
+                tracks: newTracks
+            };
+        });
+        return newTrackId; // Note: State updates are async, so this ID is valid but track might not be in state immediately for sync usage if accessed from state directly
+    }, []);
+
     // 6. Playback State
     const [currentTime, setCurrentTime] = useState(0); // In seconds
     const [isPlaying, setIsPlaying] = useState(false);
@@ -198,6 +239,17 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     const [isSnapping, setIsSnapping] = useState(false);
     const toggleSnapping = React.useCallback(() => setIsSnapping(prev => !prev), []);
 
+    // 9. Tooling Helpers (Split/Delete Selected)
+    const splitSelectedClip = React.useCallback(() => {
+        if (!selectedClipId) return;
+        splitClip(selectedClipId, currentTime);
+    }, [selectedClipId, currentTime, splitClip]);
+
+    const deleteSelectedClip = React.useCallback(() => {
+        if (!selectedClipId) return;
+        removeClip(selectedClipId);
+    }, [selectedClipId, removeClip]);
+
     return (
         <ProjectContext.Provider value={{
             project,
@@ -207,6 +259,7 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
             updateClipResult,
             splitClip,
             removeClip,
+            addTrack,
             currentTime,
             setCurrentTime,
             isPlaying,
@@ -214,7 +267,9 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
             selectedClipId,
             selectClip,
             isSnapping,
-            toggleSnapping
+            toggleSnapping,
+            splitSelectedClip,
+            deleteSelectedClip
         }}>
             {children}
         </ProjectContext.Provider>

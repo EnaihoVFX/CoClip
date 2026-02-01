@@ -375,7 +375,7 @@
     /* JS will position this */
     width: 1px;
     background-color: white;
-    z-index: 50;
+    z-index: 60;
     pointer-events: none;
 }
 
@@ -402,4 +402,34 @@
     height: 9px;
     background-color: white;
     border-radius: 50%;
+}
+
+/* --- RESIZE HANDLES --- */
+.resize-handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 10px;
+    cursor: col-resize;
+    z-index: 20;
+    /* Ensure above content but below playhead */
+    opacity: 0;
+    transition: opacity 0.2s, background-color 0.2s;
+}
+
+.resize-handle:hover {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.resize-handle.left {
+    left: 0;
+    border-left: 2px solid white;
+    border-radius: 4px 0 0 4px;
+}
+
+.resize-handle.right {
+    right: 0;
+    border-right: 2px solid white;
+    border-radius: 0 4px 4px 0;
 }
